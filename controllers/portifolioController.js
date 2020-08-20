@@ -10,6 +10,7 @@ const UserShares = require('../models/UserShares');
 // -----------------
 
 portifolioController.portifolioIndex = async (req, res) => {
+  let userId = req.user.id;
   // Getting all symbols from transactions by a specific user
   let dbStock;
   try {
@@ -35,9 +36,10 @@ portifolioController.portifolioIndex = async (req, res) => {
     }
     // Calculating total of shares for each symbol in the portifolio
 
-    let totalShares;
+    let userShares;
     try {
-      totalShares = await portifolioMetrics.totalShares(req.user.id, ticker);
+      userShares = new UserShares(ticker, userId);
+      await userShares.calculatingTotalShares();
       // Fetching the current price from an external API
       let endOfDayPriceApi;
       try {
@@ -50,7 +52,7 @@ portifolioController.portifolioIndex = async (req, res) => {
       // Final object
       let finalStock = {
         symbol: ticker,
-        totalShares: totalShares.rows[0].total,
+        totalShares: userShares.totalShares.rows[0].total,
         currentPrice: endOfDayPriceApi.data[0].adjClose,
       };
       // Pushing the final stock object to the array
