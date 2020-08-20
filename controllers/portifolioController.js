@@ -3,6 +3,7 @@ const portifolioController = {};
 const pool = require('../db');
 const axios = require('axios');
 const portifolioMetrics = require('../customFunctions/totals');
+const UserShares = require('../models/UserShares');
 
 // -----------------
 // PORTIFOLIO INDEX
@@ -37,7 +38,7 @@ portifolioController.portifolioIndex = async (req, res) => {
     let totalShares;
     try {
       totalShares = await portifolioMetrics.totalShares(req.user.id, ticker);
-      // Fetching the current price from an external API (FREE VERSION LIMIT = 5 requests per minute)
+      // Fetching the current price from an external API
       let endOfDayPriceApi;
       try {
         endOfDayPriceApi = await axios.get(
@@ -145,6 +146,7 @@ portifolioController.deleteTransaction = (req, res) => {
 
 portifolioController.stockShowPage = async (req, res) => {
   const upperSymbol = req.params.symbol.toUpperCase();
+  const userId = req.user.id;
   let dbStock;
 
   //finding the stock info in the DB
@@ -182,9 +184,11 @@ portifolioController.stockShowPage = async (req, res) => {
   }
 
   // total shares
+
   let tShares;
   try {
-    tShares = await portifolioMetrics.totalShares(req.user.id, upperSymbol);
+    tShares = new UserShares(upperSymbol, userId);
+    await tShares.calculatingTotalShares();
   } catch (err) {
     console.log(err);
   }
@@ -192,11 +196,7 @@ portifolioController.stockShowPage = async (req, res) => {
   // total average price - weighted average
   let totalAverageCost;
   try {
-    totalAverageCost = await portifolioMetrics.averageCost(
-      req.user.id,
-      upperSymbol
-    );
-    console.log(totalAverageCost);
+    totalAverageCost = await portifolioMetrics.averageCost(userId, upperSymbol);
   } catch (err) {
     console.log(err);
   }
@@ -204,7 +204,7 @@ portifolioController.stockShowPage = async (req, res) => {
   const stockObj = {
     symbol: upperSymbol,
     currentPrice: endOfDayPriceApi.data[0].adjClose,
-    shares: tShares.rows[0].total,
+    shares: tShares.totalShares.rows[0].total,
     avgPrice: totalAverageCost,
     news: stockNews.data.articles,
     transactions: dbStock.rows,

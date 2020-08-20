@@ -10,28 +10,49 @@ const passport = require('passport');
 const initializePassport = require('./passportConfig');
 const methodOverride = require('method-override');
 
-initializePassport(passport);
+class Server {
+  constructor() {
+    this.initPassport();
+    this.initViewEngine();
+    this.initExpressMiddleware();
+    this.initRoutes();
+    this.start();
+  }
 
-app.set('view engine', 'ejs');
-app.use('/public', express.static('public'));
-app.use(methodOverride('_method'));
+  start() {
+    app.listen(process.env.PORT || 3000, (err, res) => {
+      console.log('Server is Running on port 3000');
+    });
+  }
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: 'secret',
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+  initViewEngine() {
+    app.set('view engine', 'ejs');
+    app.use('/public', express.static('public'));
+  }
 
-app.use(passport.initialize());
-app.use(passport.session());
+  initExpressMiddleware() {
+    app.use(methodOverride('_method'));
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+  }
 
-app.use('/', portifolio);
-app.use('/user', user);
+  initPassport() {
+    initializePassport(passport);
+    app.use(
+      session({
+        secret: 'secret',
+        resave: false,
+        saveUninitialized: false,
+      })
+    );
+    app.use(passport.initialize());
+    app.use(passport.session());
+  }
 
-app.listen(process.env.PORT || 3000, (err, res) => {
-  console.log('Server is Running on port 3000');
-});
+  initRoutes() {
+    app.use('/', portifolio);
+    app.use('/user', user);
+  }
+}
+
+new Server();

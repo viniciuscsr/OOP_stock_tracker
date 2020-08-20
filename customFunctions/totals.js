@@ -1,23 +1,34 @@
 const pool = require('../db');
 const portifolioMetrics = {};
 
-// class UserShares {
-//   constructor(symbol, userId) {
-//     (this.symbol = symbol), (this.userId = userId), (this.totalShares = 0);
-//   }
+// --------------------
+// CLASSES
+// --------------------
 
-//   async calculatingTotalShares() {
-//     this.totalShares = await pool.query(
-//       'SELECT SUM (shares) AS total FROM portifolio WHERE userid=$1 AND symbol=$2',
-//       [this.userId, this.symbol]
-//     );
-//     console.log(this.totalShares.rows);
-//     return this;
-//   }
-// }
+class UserShares {
+  constructor(symbol, userId) {
+    this.symbol = symbol;
+    this.userId = userId;
+    this.totalShares = 0;
+    this.calculatingTotalShares();
+  }
+
+  async calculatingTotalShares() {
+    this.totalShares = await pool.query(
+      'SELECT SUM (shares) AS total FROM portifolio WHERE userid=$1 AND symbol=$2',
+      [this.userId, this.symbol]
+    );
+    console.log(this.totalShares.rows);
+    return this;
+  }
+}
 
 // const testUser = new UserShares('DIS', 2);
 // testUser.calculatingTotalShares();
+
+// -------------
+// FUNCTIONS
+// -------------
 
 portifolioMetrics.totalShares = function (userId, symbol) {
   return pool.query(
