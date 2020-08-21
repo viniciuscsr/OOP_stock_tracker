@@ -2,8 +2,8 @@ const portifolioController = {};
 
 const pool = require('../db');
 const axios = require('axios');
-const portifolioMetrics = require('../customFunctions/totals');
 const UserShares = require('../models/UserShares');
+const ApplicationError = require('../models/ApplicationError');
 
 // -----------------
 // PORTIFOLIO INDEX
@@ -20,6 +20,7 @@ portifolioController.portifolioIndex = async (req, res) => {
     );
   } catch (err) {
     console.log(err);
+    new ApplicationError();
   }
   let portifolioArray = [];
 
