@@ -187,18 +187,18 @@ portifolioController.stockShowPage = async (req, res) => {
 
   // total shares
 
-  let tShares;
+  let userShares;
   try {
-    tShares = new UserShares(upperSymbol, userId);
-    await tShares.calculatingTotalShares();
+    userShares = new UserShares(upperSymbol, userId);
+    await userShares.calculatingTotalShares();
   } catch (err) {
     console.log(err);
   }
 
   // total average price - weighted average
-  let totalAverageCost;
+
   try {
-    totalAverageCost = await portifolioMetrics.averageCost(userId, upperSymbol);
+    await userShares.avgPrice();
   } catch (err) {
     console.log(err);
   }
@@ -206,8 +206,8 @@ portifolioController.stockShowPage = async (req, res) => {
   const stockObj = {
     symbol: upperSymbol,
     currentPrice: endOfDayPriceApi.data[0].adjClose,
-    shares: tShares.totalShares.rows[0].total,
-    avgPrice: totalAverageCost,
+    shares: userShares.totalShares.rows[0].total,
+    avgPrice: userShares.averagePrice,
     news: stockNews.data.articles,
     transactions: dbStock.rows,
   };
